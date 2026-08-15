@@ -2,7 +2,8 @@
 ZDX node capability reporting.
 
 Provides a portable description of node resources without executing remote
-workloads. Used for future scheduling and discovery.
+workloads. Spatial PNG support is advertised explicitly so schedulers can avoid
+assigning spatial workloads to nodes that only understand legacy linear frames.
 """
 
 from __future__ import annotations
@@ -11,6 +12,14 @@ import os
 import platform
 import uuid
 from dataclasses import dataclass, asdict
+
+
+SPATIAL_VM_FEATURES = [
+    "spatial-png-v1",
+    "xy-addressing",
+    "rgb24-isa16",
+    "spatial-storage",
+]
 
 
 @dataclass
@@ -35,8 +44,24 @@ def detect_capabilities() -> NodeCapabilities:
         cpu_count=os.cpu_count() or 1,
         gpu=False,
         npu=False,
-        vm_features=["pyxel-vm", "frame-hash", "deterministic-execution"],
+        vm_features=[
+            "pyxel-vm",
+            "frame-hash",
+            "deterministic-execution",
+            *SPATIAL_VM_FEATURES,
+        ],
     )
+
+
+def supports_required_features(capabilities, required_features) -> bool:
+    """Return True when a capability payload/node object satisfies a workload."""
+    if isinstance(capabilities, NodeCapabilities):
+        available = capabilities.vm_features
+    elif isinstance(capabilities, dict):
+        available = capabilities.get("vm_features", [])
+    else:
+        available = getattr(capabilities, "vm_features", [])
+    return set(required_features or []).issubset(set(available or []))
 
 
 def capability_message():
