@@ -1,22 +1,4 @@
-"""
-setup.py — Cython build configuration for open-pyxel.
-
-Build compiled extensions:
-    python setup.py build_ext --inplace
-
-Compiled modules:
-    zdx_parallel_vm         (uses numpy)
-    zdx_pixel_memory.codec  (uses numpy)
-    zdx_pixel_memory.store
-    zdx_pixel_memory.agent_memory
-
-Stay as pure Python:
-    pyxel_registry
-    zdx_agent_runtime
-
-On Linux/Mac:  output is <module>.cpython-3x-<arch>.so
-On Windows:    output is <module>.cpython-3x-<arch>.pyd
-"""
+"""Cython build configuration for ZDX PyxelVM."""
 
 from setuptools import setup, find_packages
 from Cython.Build import cythonize
@@ -54,9 +36,10 @@ extensions = [
 
 setup(
     name="open-pyxel",
-    version="1.0.0",
-    description="Parallel Pyxel VM — pixel-native virtual machine (open source)",
+    version="1.1.0",
+    description="Parallel Pyxel VM with spatial PNG execution and storage",
     packages=find_packages(exclude=["test*"]),
+    py_modules=["pyxel_registry", "zdx_agent_runtime", "zdx_spatial_frame"],
     ext_modules=cythonize(
         extensions,
         compiler_directives=_COMPILER_DIRECTIVES,

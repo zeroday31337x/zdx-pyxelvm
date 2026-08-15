@@ -1,0 +1,24 @@
+name: spatial-png
+
+on:
+  push:
+    branches: [feature/spatial-png-runtime]
+  pull_request:
+    branches: [main]
+
+jobs:
+  spatial:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install focused dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest pillow numpy
+      - name: Compile spatial/runtime modules
+        run: python -m compileall -q zdx_spatial_frame.py zdx_agent_runtime.py zdx_pixel_memory
+      - name: Run spatial architecture and core VM regression tests
+        run: pytest -q test_spatial_png.py test_spatial_architecture.py test_vm.py test_registry.py
