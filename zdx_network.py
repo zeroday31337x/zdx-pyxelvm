@@ -10,7 +10,8 @@ This module intentionally provides a small, dependency-free protocol layer:
 - frame transfer metadata
 - safe socket timeouts
 
-Execution remains local and deterministic. Networking only moves data.
+Execution remains local and deterministic. Networking only moves data and
+spatial geometry metadata; it never rewrites or translates the PNG raster.
 """
 
 from __future__ import annotations
@@ -79,8 +80,24 @@ def heartbeat() -> ZDXMessage:
     return ZDXMessage(kind="heartbeat", payload={"status": "alive"})
 
 
-def frame_announce(path: str, sha256: str) -> ZDXMessage:
-    return ZDXMessage(
-        kind="frame",
-        payload={"path": path, "sha256": sha256},
-    )
+def _normalize_spatial_layout(layout):
+    if layout is None:
+        return None
+    if hasattr(layout, "to_dict"):
+        return layout.to_dict()
+    if isinstance(layout, dict):
+        return dict(layout)
+    raise TypeError("spatial_layout must be a dict, expose to_dict(), or be None")
+
+
+def frame_announce(path: str, sha256: str, *, spatial_layout=None) -> ZDXMessage:
+    layout = _normalize_spatial_layout(spatial_layout)
+    payload = {
+        "path": path,
+        "sha256": sha256,
+        "execution_model": "spatial-png" if layout is not None else "pixel-frame",
+    }
+    if layout is not None:
+        payload["spatial_version"] = 1
+        payload["spatial_layout"] = layout
+    return ZDXMessage(kind="frame", payload=payload)
