@@ -2,7 +2,9 @@ name: spatial-png
 
 on:
   push:
-    branches: [feature/spatial-png-runtime]
+    branches:
+      - feature/spatial-png-runtime
+      - feature/spatial-architecture-integration
   pull_request:
     branches: [main]
 
@@ -19,6 +21,22 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pillow numpy
       - name: Compile spatial/runtime modules
-        run: python -m compileall -q zdx_spatial_frame.py zdx_agent_runtime.py zdx_pixel_memory
-      - name: Run spatial architecture and core VM regression tests
-        run: pytest -q test_spatial_png.py test_spatial_architecture.py test_vm.py test_registry.py
+        run: |
+          python -m compileall -q \
+            zdx_spatial_frame.py \
+            zdx_agent_runtime.py \
+            zdx_pixel_memory \
+            zdx_frame_manifest.py \
+            zdx_workload_manifest.py \
+            zdx_protocol.py \
+            zdx_capabilities.py \
+            zdx_sync.py \
+            zdx_network.py
+      - name: Run spatial architecture and platform regression tests
+        run: |
+          pytest -q \
+            test_spatial_png.py \
+            test_spatial_architecture.py \
+            test_spatial_platform_integration.py \
+            test_vm.py \
+            test_registry.py
